@@ -1,7 +1,10 @@
 from PIL import Image, ImageDraw
 from math import *
 
-img = Image.open("images/document.jpg")
+img = Image.open("images/paper.jpg")
+
+#Précision n
+n=1
 
 def blackwhite(img):
     fn = lambda i: 255 if i > 150 else 0
@@ -23,11 +26,9 @@ def get_concat_ver(im1, im2, im3):
 
 def proj_hor(img,xy_begin,xy_end,color,indice=False):
     pixelproj_hor=[]
-    print("debut proj_hor")
     for y in range(xy_begin[1],xy_end[1]):
         nb=0
         for x in range(xy_begin[0],xy_end[0]):
-            # print("proj_hor  ",x,y,img.size,xy_begin,xy_end)
             if img.getpixel((x,y)) == (0,0,0):
                 nb+=1
         pixelproj_hor.append(nb)
@@ -38,11 +39,9 @@ def proj_hor(img,xy_begin,xy_end,color,indice=False):
 
 def proj_ver(img,xy_begin,xy_end,color,indice=False):
     pixelproj_ver=[]
-    print("debut proj_ver xy=",img.size,xy_begin,xy_end)
     for x in range(xy_begin[0],xy_end[0]):
         nb=0
         for y in range(xy_begin[1],xy_end[1]):
-            # print("proj_ver  ",x,y,img.size,xy_begin,xy_end)
             if img.getpixel((x,y)) == (0,0,0):
                 nb+=1
         pixelproj_ver.append(nb)
@@ -55,9 +54,9 @@ def cut_hor(img,xy_begin,xy_end,pixelproj_hor,color,indice=False):
 
     occ_max = [0,0]
     nb_occ = 0
-    pixelproj_hor.append('#')
+    pixelproj_hor.append(999)
     for i in range(len(pixelproj_hor)):
-        if pixelproj_hor[i] == 0:
+        if pixelproj_hor[i] < n:
             nb_occ += 1
         else :
             if nb_occ > occ_max[1] :
@@ -74,11 +73,8 @@ def cut_hor(img,xy_begin,xy_end,pixelproj_hor,color,indice=False):
             img.putpixel((img.width-1,i),(255,0,0))
         return img
     elif occ_max[1] == 0:
-        print("STOP ",occ_max)
-        # return img
         return proj_ver(img,xy_begin,xy_end,color,True)
 
-    print("cut_hor  occ_max =",occ_max)
     # for r in range(occ_max[0],occ_max[0]+occ_max[1]):
     #     for k in range(xy_begin[0],xy_end[0]):
     #          img.putpixel((k,r),color)
@@ -86,7 +82,6 @@ def cut_hor(img,xy_begin,xy_end,pixelproj_hor,color,indice=False):
     lst = [x-5 for x in lst]
     color = tuple(lst)
 
-    print("cut_hor  xy =",xy_begin,xy_end)
     img1 = proj_ver(img.crop((0,0,xy_end[0],occ_max[0])),(0,0),(xy_end[0],occ_max[0]),color)
     img2 = img.crop((0,occ_max[0],xy_end[0],occ_max[0]+occ_max[1]))
     img3 = proj_ver(img.crop((0,occ_max[0]+occ_max[1],xy_end[0],xy_end[1])),(0,0),(xy_end[0],xy_end[1]-occ_max[0]-occ_max[1]),color)
@@ -96,9 +91,9 @@ def cut_ver(img,xy_begin,xy_end,pixelproj_ver,color,indice=False):
 
     occ_max = [0,0]
     nb_occ = 0
-    pixelproj_ver.append('#')
+    pixelproj_ver.append(999)
     for i in range(len(pixelproj_ver)):
-        if pixelproj_ver[i] == 0:
+        if pixelproj_ver[i] < n:
             nb_occ += 1
         else :
             if nb_occ > occ_max[1] :
@@ -115,11 +110,8 @@ def cut_ver(img,xy_begin,xy_end,pixelproj_ver,color,indice=False):
             img.putpixel((img.width-1,i),(255,0,0))
         return img
     elif occ_max[1] == 0:
-        print("STOP ",occ_max)
-        # return img
         return proj_hor(img,xy_begin,xy_end,color)
 
-    print("cut_ver  occ_max =",occ_max)
     # for r in range(occ_max[0],occ_max[0]+occ_max[1]):
     #     for k in range(xy_begin[1],xy_end[1]):
     #          img.putpixel((r,k),color)
@@ -127,7 +119,6 @@ def cut_ver(img,xy_begin,xy_end,pixelproj_ver,color,indice=False):
     lst = [x-5 for x in lst]
     color = tuple(lst)
 
-    print("cut_ver  xy =",xy_begin,xy_end)
     img1 = proj_hor(img.crop((0,0,occ_max[0],xy_end[1])),(0,0),(occ_max[0],xy_end[1]),color)
     img2 = img.crop((occ_max[0],0,occ_max[0]+occ_max[1],xy_end[1]))
     img3 = proj_hor(img.crop(((occ_max[0]+occ_max[1]),0,xy_end[0],xy_end[1])),(0,0),(xy_end[0]-occ_max[0]-occ_max[1],xy_end[1]),color)
